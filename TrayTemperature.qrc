@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/c-hourglass.svg</file>
+        <file>images/c-warning.svg</file>
+        <file>images/c-weather-cloudy-with-sun.svg</file>
+    </qresource>
+</RCC>
