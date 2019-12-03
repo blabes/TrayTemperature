@@ -73,7 +73,6 @@
 #include <QWidgetAction>
 #include <QMessageBox>
 
-//! [0]
 TrayTemperature::TrayTemperature()
 {
     qDebug() << "constructing TrayTemperature";
@@ -112,9 +111,7 @@ TrayTemperature::TrayTemperature()
 
     if (QString(settingsHolder->APIKey).isEmpty()) this->show();
 }
-//! [0]
 
-//! [1]
 void TrayTemperature::setVisible(bool visible)
 {
     qDebug() << QString("setVisible(%1)").arg(visible);
@@ -123,9 +120,7 @@ void TrayTemperature::setVisible(bool visible)
     //updateConfigDialogWidgets();
     QDialog::setVisible(visible);
 }
-//! [1]
 
-//! [2]
 void TrayTemperature::closeEvent(QCloseEvent *event)
 {
 #ifdef Q_OS_OSX
@@ -139,7 +134,6 @@ void TrayTemperature::closeEvent(QCloseEvent *event)
         event->ignore();
     }
 }
-//! [2]
 
 void TrayTemperature::timerTick() {
     qDebug() << "timerTick()";
