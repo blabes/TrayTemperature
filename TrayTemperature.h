@@ -156,6 +156,7 @@ private:
     void loadSettings();
     void saveSettings();
     void defaultSettings();
+    void popupNetworkWarning(QNetworkReply *rep, QString msg);
 
     // System tray icon size is 16x16 on Windows, and 22x22 on X11.
     // would be nice if we could query the icon to find its size,

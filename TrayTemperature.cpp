@@ -160,6 +160,21 @@ void TrayTemperature::refreshLocation() {
     }
 }
 
+void TrayTemperature::popupNetworkWarning(QNetworkReply *rep, QString msg) {
+    trayIcon->setIcon(warningIcon);
+    trayIcon->setToolTip(msg + " request error");
+
+    QMessageBox msgBox;
+    msgBox.setWindowTitle("Tray Temperature");
+    msgBox.setText(QString("Problem requesting " + msg + " data. "
+                           "Right-click the tray icon, then choose 'Refresh Temperature...' to retry. "
+                           "Right-click the tray icon, then choose 'Configure...' to fix configuration."));
+    QString ts = QDateTime::currentDateTime().toString();
+    msgBox.setDetailedText(QString("Time: %1\nError: %2\nRequest: %3").arg(ts).arg(rep->errorString()).arg(rep->url().toString()));
+    msgBox.exec();
+
+}
+
 void TrayTemperature::handleGeoLocationData(QNetworkReply *rep) {
     qDebug() << "handleGeoLocationData()";
     if (!rep) {
@@ -182,14 +197,7 @@ void TrayTemperature::handleGeoLocationData(QNetworkReply *rep) {
         emit(locationRefreshed());
     }
     else {
-        trayIcon->setIcon(warningIcon);
-        trayIcon->setToolTip("Geolocation request error");
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("Tray Temperature");
-        msgBox.setText("Problem requesting geolocation data");
-        QString ts = QDateTime::currentDateTime().toString();
-        msgBox.setDetailedText(QString("Time: %1\nError: %2\nRequest: %3").arg(ts).arg(rep->errorString()).arg(rep->url().toString()));
-        msgBox.exec();
+        popupNetworkWarning(rep, "geolocation");
         timer->stop();
     }
 
@@ -235,15 +243,7 @@ void TrayTemperature::handleWeatherNetworkData(QNetworkReply *rep){
         emit(temperatureRefreshed());
     }
     else {
-        trayIcon->setIcon(warningIcon);
-        trayIcon->setToolTip("Temperature request error");
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("Tray Temperature");
-        msgBox.setText("Problem requesting temperature data");
-        QString ts = QDateTime::currentDateTime().toString();
-        msgBox.setDetailedText(QString("Time: %1\nError: %2\nRequest: %3").arg(ts).arg(rep->errorString()).arg(rep->url().toString()));
-        msgBox.setInformativeText("Did you enter a valid API Key in Configure...?");
-        msgBox.exec();
+        popupNetworkWarning(rep, "temperature");
         timer->stop();
     }
 }
