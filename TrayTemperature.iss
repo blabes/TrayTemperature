@@ -28,6 +28,7 @@ SetupIconFile=C:\Users\blabe\Downloads\c-weather-cloudy-with-sun.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+InfoAfterFile=post-install-notes.rtf
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

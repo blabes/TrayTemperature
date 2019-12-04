@@ -82,9 +82,15 @@ TrayTemperature::TrayTemperature()
 
     this->settings = new QSettings("Doug Bloebaum", "TrayTemperature");
     this->settingsHolder = new SettingsHolder;
-    loadSettings();
+    if (this->settings->contains("APIKey")) {
+        // this ain't our first rodeo: load from saved settings
+        loadSettings();
+    }
+    else {
+        // hey, this IS our first rodeo: load some reasonable defaults
+        defaultSettings();
+    }
 
-    //createConfigDialog();
     createActions();
     createTrayIcon();
 
@@ -95,6 +101,8 @@ TrayTemperature::TrayTemperature()
     // tell the system we want network
     ns->open();
 
+    setWindowTitle(tr("Tray Temperature"));
+
     connect(this, &TrayTemperature::locationRefreshed, this, &TrayTemperature::refreshTemperature);
     connect(this, &TrayTemperature::temperatureRefreshed, this, &TrayTemperature::displayIcon);
     connect(this, &TrayTemperature::locationRefreshed, this, &TrayTemperature::updateConfigDialogWidgets);
@@ -104,12 +112,18 @@ TrayTemperature::TrayTemperature()
 
     this->timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &TrayTemperature::timerTick);
-    timer->start(60 * 1000 * settingsHolder->temperatureUpdateFrequency);
-    timerTick(); // do the first timer loop on startup
+    int frequencySeconds = 60*1000*settingsHolder->temperatureUpdateFrequency;
+    if (frequencySeconds < 60) qFatal("timer frequency too low"); // sanity check
 
-    setWindowTitle(tr("Tray Temperature"));
-
-    if (QString(settingsHolder->APIKey).isEmpty()) this->show();
+    if (QString(settingsHolder->APIKey).isEmpty()){
+        // no API Key... maybe the first run?  Show the config form.
+        updateConfigDialogWidgets();
+        this->show();
+    }
+    else {
+        timer->start(frequencySeconds);
+        timerTick(); // do the first timer loop on normal startup
+    }
 }
 
 void TrayTemperature::setVisible(bool visible)
@@ -117,7 +131,6 @@ void TrayTemperature::setVisible(bool visible)
     qDebug() << QString("setVisible(%1)").arg(visible);
     minimizeAction->setEnabled(visible);
     configureAction->setEnabled(isMaximized() || !visible);
-    //updateConfigDialogWidgets();
     QDialog::setVisible(visible);
 }
 
@@ -178,11 +191,10 @@ void TrayTemperature::popupNetworkWarning(QNetworkReply *rep, QString msg) {
 void TrayTemperature::handleGeoLocationData(QNetworkReply *rep) {
     qDebug() << "handleGeoLocationData()";
     if (!rep) {
-        qDebug() << "oops, error with geolocation reply";
         trayIcon->setIcon(warningIcon);
         trayIcon->setToolTip("Geolocation request error");
         trayIcon->showMessage("Geolocation request error", "Reply was null");
-        QCoreApplication::exit(1);
+        qFatal("error with geolocation reply, rep was null");
     }
 
     if (!rep->error()) {
@@ -227,11 +239,10 @@ void TrayTemperature::refreshTemperature() {
 void TrayTemperature::handleWeatherNetworkData(QNetworkReply *rep){
     qDebug() << "handleWeatherNetworkData()";
     if (!rep) {
-        qDebug() << "oops, error with weather reply";
         trayIcon->setIcon(warningIcon);
         trayIcon->setToolTip("Weather request error");
         trayIcon->showMessage("Weather network error", "Reply was null");
-        QCoreApplication::exit(1);
+        qFatal("error with weather reply, rep was null");
     }
 
     if (!rep->error()) {

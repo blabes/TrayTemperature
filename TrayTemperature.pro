@@ -18,5 +18,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES += \
     README.md \
     TrayTemperature.iss \
-    post-install-notes.rtf \
-    post-install-notes.txt
+    post-install-notes.rtf
