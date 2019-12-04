@@ -178,11 +178,11 @@ void TrayTemperature::popupNetworkWarning(QNetworkReply *rep, QString msg) {
 void TrayTemperature::handleGeoLocationData(QNetworkReply *rep) {
     qDebug() << "handleGeoLocationData()";
     if (!rep) {
+        qDebug() << "oops, error with geolocation reply";
         trayIcon->setIcon(warningIcon);
         trayIcon->setToolTip("Geolocation request error");
-        qDebug() << "oops, error with geolocation reply";
-        trayIcon->showMessage("Geolocation request error", "No reply received");
-        return;
+        trayIcon->showMessage("Geolocation request error", "Reply was null");
+        QCoreApplication::exit(1);
     }
 
     if (!rep->error()) {
@@ -227,11 +227,11 @@ void TrayTemperature::refreshTemperature() {
 void TrayTemperature::handleWeatherNetworkData(QNetworkReply *rep){
     qDebug() << "handleWeatherNetworkData()";
     if (!rep) {
+        qDebug() << "oops, error with weather reply";
         trayIcon->setIcon(warningIcon);
         trayIcon->setToolTip("Weather request error");
-        trayIcon->showMessage("Weather network error", "No reply received");
-        qDebug() << "oops, error with weather reply";
-        return;
+        trayIcon->showMessage("Weather network error", "Reply was null");
+        QCoreApplication::exit(1);
     }
 
     if (!rep->error()) {
