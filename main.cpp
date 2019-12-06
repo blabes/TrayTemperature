@@ -54,7 +54,6 @@
 
 #include <QMessageBox>
 #include <QSystemTrayIcon>
-#include "ui_TrayTemperatureConfig.h"
 #include "TrayTemperature.h"
 
 int main(int argc, char *argv[])

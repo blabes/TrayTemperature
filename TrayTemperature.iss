@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TrayTemperature"
-#define MyAppVersion "0.1"
+#define MyAppVersion GetFileVersion('C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\TrayTemperature.exe')
 #define MyAppPublisher "Doug Bloebaum"
 #define MyAppURL "https://github.com/blabes/TrayTemperature"
 #define MyAppExeName "TrayTemperature.exe"
@@ -37,6 +37,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
+; Note that the Inno wizard doesn't handle grabbing whole directories very well.
+; These directories: platforms, bearer, styles, iconengines, imageformats, and translations
+; need to exist in the installation directory; their contents can't just be flattened
+; out as files - blabes
 Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\TrayTemperature.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\*.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\platforms\*"; DestDir: "{app}\platforms"; Flags: ignoreversion
@@ -46,6 +50,10 @@ Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_
 Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\imageformats\*"; DestDir: "{app}\imageformats"; Flags: ignoreversion
 Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\translations\*"; DestDir: "{app}\translations"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+
+[Registry]
+; Clean up this program's registy entries during uninstall - blabes
+Root: HKA; Subkey: "Software\{#MyAppPublisher}\{#MyAppName}"; Flags: uninsdeletekey
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

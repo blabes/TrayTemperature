@@ -49,6 +49,7 @@
 ****************************************************************************/
 
 #include "ui_TrayTemperatureConfig.h"
+#include "ui_TrayTemperatureAbout.h"
 #include "TrayTemperature.h"
 
 #ifndef QT_NO_SYSTEMTRAYICON
@@ -75,7 +76,7 @@
 
 TrayTemperature::TrayTemperature()
 {
-    qDebug() << "constructing TrayTemperature";
+    qDebug() << "constructing TrayTemperature version " << version;
 
     ui = new Ui::TrayTemperatureConfig;
     ui->setupUi(this);
@@ -113,25 +114,17 @@ TrayTemperature::TrayTemperature()
     this->timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &TrayTemperature::timerTick);
     int frequencySeconds = 60*1000*settingsHolder->temperatureUpdateFrequency;
-    if (frequencySeconds < 60) qFatal("timer frequency too low"); // sanity check
+    if (frequencySeconds < 60) qFatal("timer frequency too low"); // sanity check that timer waits at least 1 minute
 
     if (QString(settingsHolder->APIKey).isEmpty()){
         // no API Key... maybe the first run?  Show the config form.
         updateConfigDialogWidgets();
-        this->show();
+        this->showConfigDialog();
     }
     else {
         timer->start(frequencySeconds);
         timerTick(); // do the first timer loop on normal startup
     }
-}
-
-void TrayTemperature::setVisible(bool visible)
-{
-    qDebug() << QString("setVisible(%1)").arg(visible);
-    minimizeAction->setEnabled(visible);
-    configureAction->setEnabled(isMaximized() || !visible);
-    QDialog::setVisible(visible);
 }
 
 void TrayTemperature::closeEvent(QCloseEvent *event)
@@ -168,8 +161,7 @@ void TrayTemperature::refreshLocation() {
 
         QNetworkReply *rep = nam->get(QNetworkRequest(url));
         // connect up the signal right away
-        connect(rep, &QNetworkReply::finished,
-                this, [this, rep]() { handleGeoLocationData(rep); });
+        connect(rep, &QNetworkReply::finished, this, [this, rep]() { handleGeoLocationData(rep); });
     }
 }
 
@@ -179,12 +171,26 @@ void TrayTemperature::popupNetworkWarning(QNetworkReply *rep, QString msg) {
 
     QMessageBox msgBox;
     msgBox.setWindowTitle("Tray Temperature");
-    msgBox.setText(QString("Problem requesting " + msg + " data. "
-                           "Right-click the tray icon, then choose 'Refresh Temperature...' to retry. "
-                           "Right-click the tray icon, then choose 'Configure...' to fix configuration."));
+    msgBox.setText(QString("Problem requesting " + msg + " data, "
+                           "so automatic temperature updates have been suspended. "
+                           "Click 'Retry' to retry the request and restart automatic updates. "
+                           "Click 'Configure...' if you need to fix the configuration."));
     QString ts = QDateTime::currentDateTime().toString();
-    msgBox.setDetailedText(QString("Time: %1\nError: %2\nRequest: %3").arg(ts).arg(rep->errorString()).arg(rep->url().toString()));
+    msgBox.setDetailedText(QString("Time: %1\nError: %2\nRequest: %3").arg(ts, rep->errorString(), rep->url().toString()));
+
+    // add "Configure..." and "Retry" buttons for convenience, and the standard "Cancel"
+    QAbstractButton *retryButton = msgBox.addButton("Retry", QMessageBox::AcceptRole);
+    QAbstractButton *configureButton = msgBox.addButton("Configure...", QMessageBox::ActionRole);
+    msgBox.setStandardButtons(QMessageBox::Cancel);
+
     msgBox.exec();
+
+    if (msgBox.clickedButton() == configureButton) {
+        showConfigDialog();
+    }
+    else if (msgBox.clickedButton() == retryButton){
+        fireAndRestartTimer();
+    }
 
 }
 
@@ -209,8 +215,8 @@ void TrayTemperature::handleGeoLocationData(QNetworkReply *rep) {
         emit(locationRefreshed());
     }
     else {
-        popupNetworkWarning(rep, "geolocation");
         timer->stop();
+        popupNetworkWarning(rep, "geolocation");
     }
 
 }
@@ -254,8 +260,8 @@ void TrayTemperature::handleWeatherNetworkData(QNetworkReply *rep){
         emit(temperatureRefreshed());
     }
     else {
-        popupNetworkWarning(rep, "temperature");
         timer->stop();
+        popupNetworkWarning(rep, "temperature");
     }
 }
 
@@ -276,7 +282,7 @@ void TrayTemperature::displayIcon() {
     painter.end();
     QIcon myIcon(pix);
 
-    QString units = settingsHolder->temperatureDisplayUnits == "metric" ? "°C" : "°F";
+    QString units = settingsHolder->temperatureDisplayUnits == "METRIC" ? "°C" : "°F";
     QString toolTipString = "Temp";
     toolTipString += this->city.isEmpty() ? "" : " in " + this->city;
     toolTipString += QString(" is %1%2").arg(this->temperature).arg(units);
@@ -289,7 +295,7 @@ void TrayTemperature::displayIcon() {
 
 //! [3]
 
-void TrayTemperature::updateTemperatureDisplaySampleLabel() {
+void TrayTemperature::updateTemperatureDisplaySampleLabel() { // TODO: use stylesheet?
     ui->label_sampleDisplay->setFont(settingsHolder->temperatureFont);
     ui->label_sampleDisplay->setText("42");
     ui->label_sampleDisplay->setAutoFillBackground(true);
@@ -311,8 +317,8 @@ QString fontDisplayName(QFont font) {
 
 void TrayTemperature::updateConfigDialogWidgets() {
     qDebug() << "updateConfigDialogWidgets()";
-    ui->radio_imperial->setChecked(settingsHolder->temperatureDisplayUnits=="imperial");
-    ui->radio_metric->setChecked(settingsHolder->temperatureDisplayUnits=="metric");
+    ui->radio_imperial->setChecked(settingsHolder->temperatureDisplayUnits == "IMPERIAL");
+    ui->radio_metric->setChecked(settingsHolder->temperatureDisplayUnits == "METRIC");
 
     ui->label_font->setText(fontDisplayName(settingsHolder->temperatureFont));
     ui->label_fgColor->setText(settingsHolder->temperatureColor.name());
@@ -349,7 +355,6 @@ void TrayTemperature::loadSettings() {
     settingsHolder->temperatureUpdateFrequency = settings->value("temperatureUpdateFrequency").toInt();
     settingsHolder->APIKey = settings->value("APIKey").toString();
     settingsHolder->temperatureDisplayUnits = settings->value("temperatureDisplayUnits").toString();
-
     settingsHolder->temperatureFont = settings->value("temperatureFont").value<QFont>();
     settingsHolder->temperatureColor = settings->value("temperatureColor").value<QColor>();
     settingsHolder->bgTemperatureColor = settings->value("bgTemperatureColor").value<QColor>();
@@ -398,17 +403,45 @@ void TrayTemperature::fireAndRestartTimer() {
     this->timer->start();
 }
 
+void TrayTemperature::showAboutDialog() {
+
+    if (aboutDialog == nullptr) {
+        aboutDialog = new QDialog(nullptr, Qt::WindowTitleHint | Qt::WindowCloseButtonHint);
+        aboutUi = new Ui::TrayTemperatureAbout;
+        aboutUi->setupUi(aboutDialog);
+        aboutUi->label_version->setText(version);
+    }
+    aboutDialog->showNormal();
+    aboutDialog->raise();
+}
+
+void TrayTemperature::showConfigDialog() {
+
+    this->showNormal();
+    this->raise();
+
+    // if the APIKey is empty, set its background to yellowish as an alert
+    if (ui->lineEdit_openWeatherApiKey->text().isEmpty()) {
+        ui->lineEdit_openWeatherApiKey->setStyleSheet("background-color: rgb(255,255,127)");
+    }
+    else { // white
+        ui->lineEdit_openWeatherApiKey->setStyleSheet("background-color: rgb(255,255,255)");
+    }
+
+}
+
 void TrayTemperature::createActions()
 {
     qDebug() << "createActions()";
-    minimizeAction = new QAction(tr("Mi&nimize"), this);
-    connect(minimizeAction, &QAction::triggered, this, &QWidget::hide);
 
     configureAction = new QAction(tr("&Configure..."), this);
-    connect(configureAction, &QAction::triggered, this, &QWidget::showNormal);
+    connect(configureAction, &QAction::triggered, this, &TrayTemperature::showConfigDialog);
 
     refreshAction = new QAction(tr("Refresh &Temperature..."), this);
     connect(refreshAction, &QAction::triggered, this, &TrayTemperature::fireAndRestartTimer);
+
+    aboutAction = new QAction(tr("&Help/About..."), this);
+    connect(aboutAction, &QAction::triggered, this, &TrayTemperature::showAboutDialog);
 
     quitAction = new QAction(tr("&Quit"), this);
     connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
@@ -428,6 +461,7 @@ void TrayTemperature::createTrayIcon()
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(configureAction);
     trayIconMenu->addAction(refreshAction);
+    trayIconMenu->addAction(aboutAction);
     trayIconMenu->addSeparator();
     trayIconMenu->addAction(quitAction);
 
@@ -436,33 +470,6 @@ void TrayTemperature::createTrayIcon()
 }
 
 #endif
-
-
-void TrayTemperature::on_buttonBox_OK_Cancel_accepted()
-{
-    qDebug() << "on_buttonBox_OK_Cancel_accepted()";
-    settingsHolder->temperatureUpdateFrequency = ui->spinBox_updateFrequency->value();
-    settingsHolder->APIKey = ui->lineEdit_openWeatherApiKey->text();
-    settingsHolder->temperatureDisplayUnits = ui->radio_metric->isChecked() ? "metric" : "imperial";
-    qDebug() << "ui->checkBox_transparentBg->isChecked(): " << ui->checkBox_transparentBg->isChecked();
-    settingsHolder->bgTemperatureColorTransparent = ui->checkBox_transparentBg->isChecked();
-    settingsHolder->temperatureFont = ui->label_sampleDisplay->font();
-    settingsHolder->temperatureColor = ui->label_sampleDisplay->palette().color(ui->label_sampleDisplay->foregroundRole());
-    settingsHolder->bgTemperatureColor = ui->label_sampleDisplay->palette().color(ui->label_sampleDisplay->backgroundRole());
-    settingsHolder->useManualLocation = ui->radio_useManualLocation->isChecked();
-    settingsHolder->manualLat = ui->spinBox_lat->value();
-    settingsHolder->manualLon = ui->spinBox_lon->value();
-
-    saveSettings();
-
-    timer->setInterval(60 * 1000 * settingsHolder->temperatureUpdateFrequency);
-    fireAndRestartTimer();
-}
-
-void TrayTemperature::on_buttonBox_OK_Cancel_rejected()
-{   //restore widgets' states from settingsHolder
-    updateConfigDialogWidgets();
-}
 
 void TrayTemperature::on_button_font_clicked()
 {
@@ -543,14 +550,6 @@ void TrayTemperature::on_checkBox_transparentBg_stateChanged(int state)
     ui->label_sampleDisplay->setPalette(palette);
 }
 
-void TrayTemperature::on_button_restore_clicked()
-{
-    qDebug() << "on_button_restore_clicked()";
-    defaultSettings();
-    updateConfigDialogWidgets();
-    fireAndRestartTimer();
-}
-
 void TrayTemperature::on_radio_useIpLocation_clicked()
 {
     qDebug() << "on_radio_useIpLocation_clicked()";
@@ -565,4 +564,53 @@ void TrayTemperature::on_radio_useManualLocation_clicked()
     settingsHolder->useManualLocation = true;
     ui->spinBox_lat->setDisabled(false);
     ui->spinBox_lon->setDisabled(false);
+}
+
+void TrayTemperature::on_buttonBox_main_clicked(QAbstractButton *button)
+{
+    if (ui->buttonBox_main->buttonRole(button) == QDialogButtonBox::AcceptRole) { // OK button
+        // update settingsHolder with values from the configuration form
+        qDebug() << "on_buttonBox_main_clicked AcceptRole";
+        settingsHolder->temperatureUpdateFrequency = ui->spinBox_updateFrequency->value();
+        settingsHolder->APIKey = ui->lineEdit_openWeatherApiKey->text();
+        settingsHolder->temperatureDisplayUnits = ui->radio_metric->isChecked() ? "METRIC" : "IMPERIAL";
+        qDebug() << "ui->checkBox_transparentBg->isChecked(): " << ui->checkBox_transparentBg->isChecked();
+        settingsHolder->bgTemperatureColorTransparent = ui->checkBox_transparentBg->isChecked();
+        settingsHolder->temperatureFont = ui->label_sampleDisplay->font();
+        settingsHolder->temperatureColor = ui->label_sampleDisplay->palette().color(ui->label_sampleDisplay->foregroundRole());
+        settingsHolder->bgTemperatureColor = ui->label_sampleDisplay->palette().color(ui->label_sampleDisplay->backgroundRole());
+        settingsHolder->useManualLocation = ui->radio_useManualLocation->isChecked();
+        settingsHolder->manualLat = ui->spinBox_lat->value();
+        settingsHolder->manualLon = ui->spinBox_lon->value();
+
+        saveSettings();
+
+        timer->setInterval(60 * 1000 * settingsHolder->temperatureUpdateFrequency);
+        fireAndRestartTimer();
+
+    }
+    else if (ui->buttonBox_main->buttonRole(button) == QDialogButtonBox::RejectRole) { // Cancel button
+        qDebug() << "on_buttonBox_main_clicked RejectRole";
+        //restore widgets' states from settingsHolder
+        updateConfigDialogWidgets();
+    }
+    else if (ui->buttonBox_main->buttonRole(button) == QDialogButtonBox::ResetRole) { // Restore Defaults button
+        qDebug() << "on_buttonBox_main_clicked ResetRole";
+        //restore to "factory settings"
+        defaultSettings();
+        updateConfigDialogWidgets();
+        fireAndRestartTimer();
+    }
+    else qFatal("unknown button pressed?");
+}
+
+void TrayTemperature::on_lineEdit_openWeatherApiKey_textChanged(const QString &text)
+{
+    // if the APIKey is empty, set its background to yellowish as an alert
+    if (text.isEmpty()) {
+        ui->lineEdit_openWeatherApiKey->setStyleSheet("background-color: rgb(255,255,127)");
+    }
+    else { // white
+        ui->lineEdit_openWeatherApiKey->setStyleSheet("background-color: rgb(255,255,255)");
+    }
 }

@@ -54,6 +54,8 @@
 #ifndef QT_NO_SYSTEMTRAYICON
 
 #include "ui_TrayTemperatureConfig.h"
+#include "ui_TrayTemperatureAbout.h"
+
 #include <QDialog>
 
 QT_BEGIN_NAMESPACE
@@ -88,7 +90,7 @@ class TrayTemperature : public QDialog
 public:
     TrayTemperature();
 
-    void setVisible(bool visible) override;
+//    void setVisible(bool visible) override;
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -103,10 +105,6 @@ private slots:
     void displayIcon();
     void fireAndRestartTimer();
 
-    void on_buttonBox_OK_Cancel_accepted();
-
-    void on_buttonBox_OK_Cancel_rejected();
-
     void on_button_font_clicked();
 
     void on_button_fgColor_clicked();
@@ -115,11 +113,13 @@ private slots:
 
     void on_checkBox_transparentBg_stateChanged(int arg1);
 
-    void on_button_restore_clicked();
-
     void on_radio_useIpLocation_clicked();
 
     void on_radio_useManualLocation_clicked();
+
+    void on_buttonBox_main_clicked(QAbstractButton *button);
+
+    void on_lineEdit_openWeatherApiKey_textChanged(const QString &arg1);
 
 private:
 
@@ -136,7 +136,7 @@ private:
         double manualLat;
         double manualLon;
 
-        const QString temperatureDisplayUnitsDefault = "imperial";
+        const QString temperatureDisplayUnitsDefault = "IMPERIAL";
         const int temperatureUpdateFrequencyDefault = 5;
         const QFont temperatureFontDefault = QFont("Segoe UI", 9, QFont::Bold, false);
         const QColor temperatureColorDefault = QColor(Qt::white);
@@ -147,7 +147,12 @@ private:
         double manualLonDefault = 0;
     };
 
+
+
     const QIcon warningIcon = QIcon(":/images/c-warning.svg");
+
+    const QString version = GIT_VERSION;
+
     void updateConfigDialogWidgets();
     void updateTemperatureDisplaySampleLabel();
     void createActions();
@@ -157,6 +162,8 @@ private:
     void saveSettings();
     void defaultSettings();
     void popupNetworkWarning(QNetworkReply *rep, QString msg);
+    void showAboutDialog();
+    void showConfigDialog();
 
     // System tray icon size is 16x16 on Windows, and 22x22 on X11.
     // would be nice if we could query the icon to find its size,
@@ -164,6 +171,9 @@ private:
     const int systemTrayIconSize = QSysInfo::productType() == "windows" ? 16 : 22;
 
     Ui::TrayTemperatureConfig *ui;
+    Ui::TrayTemperatureAbout *aboutUi;
+
+    QDialog *aboutDialog = nullptr;
 
     QSettings *settings;
     SettingsHolder *settingsHolder;
@@ -181,6 +191,7 @@ private:
     QAction *maximizeAction;
     QAction *configureAction;
     QAction *refreshAction;
+    QAction *aboutAction;
     QAction *quitAction;
 
     QSystemTrayIcon *trayIcon;

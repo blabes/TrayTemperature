@@ -6,6 +6,7 @@ SOURCES       = \
 RESOURCES     = \
     TrayTemperature.qrc
 FORMS += \
+    TrayTemperatureAbout.ui \
     TrayTemperatureConfig.ui
 
 QT += widgets network
@@ -18,4 +19,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 DISTFILES += \
     README.md \
     TrayTemperature.iss \
+    gitversion.pri \
     post-install-notes.rtf
+
+include(gitversion.pri)
