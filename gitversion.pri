@@ -17,7 +17,8 @@ BASE_GIT_COMMAND = git --git-dir $$PWD/.git --work-tree $$PWD
 GIT_VERSION = $$system($$BASE_GIT_COMMAND describe --always --tags 2> $$NULL_DEVICE)
 
 # Check if we only have hash without version number
-!contains(GIT_VERSION,\d+\.\d+\.\d+) {
+!contains(GIT_VERSION,\d+\.\d+\.\d+.*) {
+    message("In the !contains block, hash with no version number")
     # If there is nothing we simply use version defined manually
     isEmpty(GIT_VERSION) {
         GIT_VERSION = $$VERSION
@@ -34,11 +35,15 @@ GIT_VERSION = $$system($$BASE_GIT_COMMAND describe --always --tags 2> $$NULL_DEV
 GIT_VERSION ~= s/-/"."
 GIT_VERSION ~= s/g/""
 
+message("GIT_VERSION=")
+message($$GIT_VERSION)
 # Now we are ready to pass parsed version to Qt
 VERSION = $$GIT_VERSION
 win32 { # On windows version can only be numerical so remove commit hash
     VERSION ~= s/\.\d+\.[a-f0-9]{6,}//
 }
+message("VERSION=")
+message($$VERSION)
 
 # Adding C preprocessor #DEFINE so we can use it in C++ code
 # also here we want full version on every system so using GIT_VERSION
