@@ -151,7 +151,7 @@ private:
 
     const QIcon warningIcon = QIcon(":/images/c-warning.svg");
 
-    const QString version = GIT_VERSION;
+    const QString version = QString("%1").arg(GIT_VERSION);
 
     void updateConfigDialogWidgets();
     void updateTemperatureDisplaySampleLabel();
