@@ -6,7 +6,7 @@ TrayTemperature
 # Summary
 - [Description](#description)
 - [Development Platform](#development-platform)
-- [Installation on Windows 10](#installation-on-windows-10)
+- [Installation on Windows](#installation-on-windows)
 - [Installation on Other Platforms](#installation-on-other-platforms)
 - [Application Screenshots](#screenshots)
 
