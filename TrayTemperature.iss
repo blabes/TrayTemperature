@@ -23,7 +23,7 @@ DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=TrayTemperature-install
+OutputBaseFilename=TrayTemperature-{#MyAppVersion}-install
 SetupIconFile=C:\Users\blabe\Downloads\c-weather-cloudy-with-sun.ico
 Compression=lzma
 SolidCompression=yes
