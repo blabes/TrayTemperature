@@ -1,2 +1,2 @@
-# TrayTemperature
-Display the current outdoor temperature in the system tray
+# TrayTemperature Screenshot Branch
+Branch just to hold screenshot graphics for github README.md file
