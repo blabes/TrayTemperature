@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TrayTemperature"
-#define MyAppVersion GetFileVersion('C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\TrayTemperature.exe')
+#define MyAppVersion GetFileVersion('C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_32_bit-Release\release\TrayTemperature.exe')
 #define MyAppPublisher "Doug Bloebaum"
 #define MyAppURL "https://github.com/blabes/TrayTemperature"
 #define MyAppExeName "TrayTemperature.exe"
@@ -23,7 +23,7 @@ DisableProgramGroupPage=yes
 ; Remove the following line to run in administrative install mode (install for all users.)
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-OutputBaseFilename=TrayTemperature-{#MyAppVersion}-install
+OutputBaseFilename=TrayTemperature-{#MyAppVersion}-install-32
 SetupIconFile=C:\Users\blabe\Downloads\c-weather-cloudy-with-sun.ico
 Compression=lzma
 SolidCompression=yes
@@ -41,14 +41,14 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 ; These directories: platforms, bearer, styles, iconengines, imageformats, and translations
 ; need to exist in the installation directory; their contents can't just be flattened
 ; out as files - blabes
-Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\TrayTemperature.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\*.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\platforms\*"; DestDir: "{app}\platforms"; Flags: ignoreversion
-Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\bearer\*"; DestDir: "{app}\bearer"; Flags: ignoreversion
-Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\styles\*"; DestDir: "{app}\styles"; Flags: ignoreversion
-Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\iconengines\*"; DestDir: "{app}\iconengines"; Flags: ignoreversion
-Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\imageformats\*"; DestDir: "{app}\imageformats"; Flags: ignoreversion
-Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release\translations\*"; DestDir: "{app}\translations"; Flags: ignoreversion
+Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_32_bit-Release\release\TrayTemperature.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_32_bit-Release\release\*.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_32_bit-Release\release\platforms\*"; DestDir: "{app}\platforms"; Flags: ignoreversion
+Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_32_bit-Release\release\bearer\*"; DestDir: "{app}\bearer"; Flags: ignoreversion
+Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_32_bit-Release\release\styles\*"; DestDir: "{app}\styles"; Flags: ignoreversion
+Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_32_bit-Release\release\iconengines\*"; DestDir: "{app}\iconengines"; Flags: ignoreversion
+Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_32_bit-Release\release\imageformats\*"; DestDir: "{app}\imageformats"; Flags: ignoreversion
+Source: "C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_32_bit-Release\release\translations\*"; DestDir: "{app}\translations"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
