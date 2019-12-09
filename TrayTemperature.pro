@@ -18,9 +18,11 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 DISTFILES += \
     ../../Downloads/c-weather-cloudy-with-sun.ico \
+    BUILD.txt \
     LICENSE.txt \
     README.md \
-    TrayTemperature.iss \
+    TrayTemperature_w32.iss \
+    TrayTemperature_w64.iss \
     c-weather-cloudy-with-sun.ico \
     gitversion.pri \
     post-install-notes.rtf
