@@ -1,51 +1,21 @@
 /****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of the examples of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:BSD$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** BSD License Usage
-** Alternatively, you may use this file under the terms of the BSD license
-** as follows:
-**
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of The Qt Company Ltd nor the names of its
-**     contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
-**
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
-**
-** $QT_END_LICENSE$
-**
+
+TrayTemperature.cpp - A Qt program to display the outdoor temperature
+                      in the system icon tray
+
+Copyright 2019 Doug Bloebaum
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 ****************************************************************************/
 
 #include "ui_TrayTemperatureConfig.h"
@@ -114,7 +84,7 @@ TrayTemperature::TrayTemperature()
     this->timer = new QTimer(this);
     connect(timer, &QTimer::timeout, this, &TrayTemperature::timerTick);
     int frequencySeconds = 60*1000*settingsHolder->temperatureUpdateFrequency;
-    if (frequencySeconds < 60) qFatal("timer frequency too low"); // sanity check that timer waits at least 1 minute
+    if (frequencySeconds < 60) qFatal("timer frequency too low: "); // sanity check that timer waits at least 1 minute
 
     if (QString(settingsHolder->APIKey).isEmpty()){
         // no API Key... maybe the first run?  Show the config form.
@@ -165,22 +135,22 @@ void TrayTemperature::refreshLocation() {
     }
 }
 
-void TrayTemperature::popupNetworkWarning(QNetworkReply *rep, QString msg) {
+void TrayTemperature::popupNetworkWarning(QNetworkReply *rep, const QString& msg) {
     trayIcon->setIcon(warningIcon);
-    trayIcon->setToolTip(msg + " request error");
+    trayIcon->setToolTip(msg + tr(" request error"));
 
     QMessageBox msgBox;
     msgBox.setWindowTitle("Tray Temperature");
-    msgBox.setText(QString("Problem requesting " + msg + " data, "
-                           "so automatic temperature updates have been suspended. "
-                           "Click 'Retry' to retry the request and restart automatic updates. "
-                           "Click 'Configure...' if you need to fix the configuration."));
+    msgBox.setText(QString(tr("Problem requesting ") + msg + tr(" data, ") +
+                           tr("so automatic temperature updates have been suspended. ") +
+                           tr("Click 'Retry' to retry the request and restart automatic updates. ") +
+                           tr("Click 'Configure...' if you need to fix the configuration.")));
     QString ts = QDateTime::currentDateTime().toString();
-    msgBox.setDetailedText(QString("Time: %1\nError: %2\nRequest: %3").arg(ts, rep->errorString(), rep->url().toString()));
+    msgBox.setDetailedText(QString(tr("Time: %1\nError: %2\nRequest: %3")).arg(ts, rep->errorString(), rep->url().toString()));
 
     // add "Configure..." and "Retry" buttons for convenience, and the standard "Cancel"
-    QAbstractButton *retryButton = msgBox.addButton("Retry", QMessageBox::AcceptRole);
-    QAbstractButton *configureButton = msgBox.addButton("Configure...", QMessageBox::ActionRole);
+    QAbstractButton *retryButton = msgBox.addButton(tr("Retry"), QMessageBox::AcceptRole);
+    QAbstractButton *configureButton = msgBox.addButton(tr("Configure..."), QMessageBox::ActionRole);
     msgBox.setStandardButtons(QMessageBox::Cancel);
 
     msgBox.exec();
@@ -198,8 +168,8 @@ void TrayTemperature::handleGeoLocationData(QNetworkReply *rep) {
     qDebug() << "handleGeoLocationData()";
     if (!rep) {
         trayIcon->setIcon(warningIcon);
-        trayIcon->setToolTip("Geolocation request error");
-        trayIcon->showMessage("Geolocation request error", "Reply was null");
+        trayIcon->setToolTip(tr("Geolocation request error"));
+        trayIcon->showMessage(tr("Geolocation request error"), tr("Reply was null"));
         qFatal("error with geolocation reply, rep was null");
     }
 
@@ -246,8 +216,8 @@ void TrayTemperature::handleWeatherNetworkData(QNetworkReply *rep){
     qDebug() << "handleWeatherNetworkData()";
     if (!rep) {
         trayIcon->setIcon(warningIcon);
-        trayIcon->setToolTip("Weather request error");
-        trayIcon->showMessage("Weather network error", "Reply was null");
+        trayIcon->setToolTip(tr("Weather request error"));
+        trayIcon->showMessage(tr("Weather network error"), tr("Reply was null"));
         qFatal("error with weather reply, rep was null");
     }
 
@@ -284,8 +254,8 @@ void TrayTemperature::displayIcon() {
 
     QString units = settingsHolder->temperatureDisplayUnits == "METRIC" ? "°C" : "°F";
     QString toolTipString = "Temp";
-    toolTipString += this->city.isEmpty() ? "" : " in " + this->city;
-    toolTipString += QString(" is %1%2").arg(this->temperature).arg(units);
+    toolTipString += this->city.isEmpty() ? "" : tr(" in ") + this->city;
+    toolTipString += QString(tr(" is %1%2")).arg(this->temperature).arg(units);
 
     trayIcon->setIcon(myIcon);
     trayIcon->setToolTip(toolTipString);
@@ -310,9 +280,15 @@ void TrayTemperature::updateTemperatureDisplaySampleLabel() { // TODO: use style
 QString fontDisplayName(QFont font) {
     return font.family() + " " +
             QString::number(font.pointSize()) + " " +
-            (font.bold() ? "bold " : "") +
-            (font.italic() ? "italic " : "") +
-            (font.underline() ? "underline " : "");
+            (font.bold() ? TrayTemperature::tr("bold ") : "") +
+            (font.italic() ? TrayTemperature::tr("italic ") : "") +
+            (font.underline() ? TrayTemperature::tr("underline ") : "");
+}
+
+void TrayTemperature::highlightIfEmpty(QLineEdit *e) {
+    // set background to yellowish if text is empty, white otherwise
+    QString colorSpec = e->text().isEmpty() ? "rgb(255,255,127)" : "rgb(255,255,255)";
+    e->setStyleSheet("background-color: " + colorSpec);
 }
 
 void TrayTemperature::updateConfigDialogWidgets() {
@@ -325,6 +301,7 @@ void TrayTemperature::updateConfigDialogWidgets() {
     ui->label_bgColor->setText(settingsHolder->bgTemperatureColor.name());
 
     ui->lineEdit_openWeatherApiKey->setText(settingsHolder->APIKey);
+    highlightIfEmpty(ui->lineEdit_openWeatherApiKey);
 
     ui->spinBox_updateFrequency->setValue(settingsHolder->temperatureUpdateFrequency);
     ui->checkBox_transparentBg->setChecked(settingsHolder->bgTemperatureColorTransparent);
@@ -420,13 +397,7 @@ void TrayTemperature::showConfigDialog() {
     this->showNormal();
     this->raise();
 
-    // if the APIKey is empty, set its background to yellowish as an alert
-    if (ui->lineEdit_openWeatherApiKey->text().isEmpty()) {
-        ui->lineEdit_openWeatherApiKey->setStyleSheet("background-color: rgb(255,255,127)");
-    }
-    else { // white
-        ui->lineEdit_openWeatherApiKey->setStyleSheet("background-color: rgb(255,255,255)");
-    }
+
 
 }
 
@@ -454,7 +425,7 @@ void TrayTemperature::createTrayIcon()
     trayIconMenu = new QMenu(this);
 
     QLabel* titleLabel = new QLabel(tr("<b>TrayTemperature</b>"), this);
-    QWidgetAction* titleAction = new QWidgetAction(trayIconMenu);
+    auto titleAction = new QWidgetAction(trayIconMenu);
     titleAction->setDefaultWidget(titleLabel);
 
     trayIconMenu->addAction(titleAction);
@@ -607,10 +578,6 @@ void TrayTemperature::on_buttonBox_main_clicked(QAbstractButton *button)
 void TrayTemperature::on_lineEdit_openWeatherApiKey_textChanged(const QString &text)
 {
     // if the APIKey is empty, set its background to yellowish as an alert
-    if (text.isEmpty()) {
-        ui->lineEdit_openWeatherApiKey->setStyleSheet("background-color: rgb(255,255,127)");
-    }
-    else { // white
-        ui->lineEdit_openWeatherApiKey->setStyleSheet("background-color: rgb(255,255,255)");
-    }
+    qDebug() << "text=" << text;
+    highlightIfEmpty(ui->lineEdit_openWeatherApiKey);
 }
