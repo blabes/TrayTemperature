@@ -1,0 +1,14 @@
+To prepare for running inno setup compiler:
+
+32-bit:
+
+PATH=%PATH%;C:\Qt\Tools\mingw730_32\bin
+CD C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_32_bit-Release\release
+C:\Qt\5.12.5\mingw73_32\bin\windeployqt.exe TrayTemperature.exe
+
+64-bit:
+PATH=%PATH%;C:\Qt\Tools\mingw730_64\bin
+CD C:\Users\blabe\Documents\build-TrayTemperature-Desktop_Qt_5_12_5_MinGW_64_bit-Release\release
+C:\Qt\5.12.5\mingw73_64\bin\windeployqt.exe TrayTemperature.exe
+
+Run inno
