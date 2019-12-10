@@ -1,4 +1,9 @@
 # Stolen from https://gist.github.com/grassator/11405930
+#
+# Create VERSION and GIT_VERSION variables based on
+# latest GIT tag and/or commit hash. We can then use the
+# C preprocessor #DEFINE GIT_VERSION in C++ code to
+# display it in, say, a Help/About window.
 
 # If there is no version tag in git this one will be used
 VERSION = 0.1.0

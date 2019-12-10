@@ -17,7 +17,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 DISTFILES += \
-    ../../Downloads/c-weather-cloudy-with-sun.ico \
     BUILD.txt \
     LICENSE.txt \
     README.md \
