@@ -91,6 +91,10 @@ private slots:
 
     void on_lineEdit_openWeatherApiKey_textChanged(const QString &arg1);
 
+    void on_checkBox_showDegreeSymbol_stateChanged(int arg1);
+
+    void on_checkBox_autoSizeFont_stateChanged(int arg1);
+
 private:
 
     class SettingsHolder {
@@ -105,6 +109,8 @@ private:
         bool useManualLocation;
         double manualLat;
         double manualLon;
+        bool autoAdjustFontSize;
+        bool showDegreeSymbol;
 
         const QString temperatureDisplayUnitsDefault = "IMPERIAL";
         const int temperatureUpdateFrequencyDefault = 5;
@@ -115,6 +121,8 @@ private:
         const bool useManualLocationDefault = false;
         double manualLatDefault = 0;
         double manualLonDefault = 0;
+        bool autoAdjustFontSizeDefault = true;
+        bool showDegreeSymbolDefault = true;
     };
 
 
@@ -135,6 +143,7 @@ private:
     void showAboutDialog();
     void showConfigDialog();
     void highlightIfEmpty(QLineEdit *e);
+    QFont adjustFontSizeForTrayIcon(QFont font, QString s);
 
     // System tray icon size is 16x16 on Windows, and 22x22 on X11.
     // would be nice if we could query the icon to find its size,

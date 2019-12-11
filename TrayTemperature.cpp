@@ -186,7 +186,7 @@ void TrayTemperature::handleGeoLocationData(QNetworkReply *rep) {
     }
     else {
         timer->stop();
-        popupNetworkWarning(rep, "geolocation");
+        popupNetworkWarning(rep, tr("geolocation"));
     }
 
 }
@@ -231,10 +231,9 @@ void TrayTemperature::handleWeatherNetworkData(QNetworkReply *rep){
     }
     else {
         timer->stop();
-        popupNetworkWarning(rep, "temperature");
+        popupNetworkWarning(rep, tr("temperature"));
     }
 }
-
 
 void TrayTemperature::displayIcon() {
 
@@ -245,8 +244,17 @@ void TrayTemperature::displayIcon() {
 
     QPainter painter( &pix );
     painter.setPen(settingsHolder->temperatureColor);
-    painter.setFont(settingsHolder->temperatureFont);
+
     QString temperatureString = QString::number(qRound(this->temperature));
+    if (settingsHolder->showDegreeSymbol) temperatureString += "°";
+
+    QFont font = settingsHolder->temperatureFont;
+    painter.setFont(font);
+
+    if (settingsHolder->autoAdjustFontSize) { // user wants to autosize the font
+        painter.setFont(adjustFontSizeForTrayIcon(font, temperatureString));
+    }
+
     qDebug() << "temperatureString=" << temperatureString;
     painter.drawText(rectangle, Qt::AlignCenter|Qt::AlignVCenter, temperatureString);
     painter.end();
@@ -263,11 +271,38 @@ void TrayTemperature::displayIcon() {
 
 }
 
-//! [3]
+// Return a font based on the given font, but with its point size adjusted
+// such that the given string will fit in a system tray icon (16x16 for Windows)
+QFont TrayTemperature::adjustFontSizeForTrayIcon(QFont font, QString s) {
+    QFont retFont = font;
+    const QRect rectangle = QRect(0, 0, systemTrayIconSize, systemTrayIconSize);
 
-void TrayTemperature::updateTemperatureDisplaySampleLabel() { // TODO: use stylesheet?
-    ui->label_sampleDisplay->setFont(settingsHolder->temperatureFont);
-    ui->label_sampleDisplay->setText("42");
+    retFont.setPointSize(15); // start big, then decrement pointSize till the string fits in the box
+    QFontMetrics fm(retFont);
+    QRect boundingRect = fm.boundingRect(rectangle, Qt::AlignCenter|Qt::AlignVCenter, s);
+    while (retFont.pointSize() > 1 && (boundingRect.height() > systemTrayIconSize || boundingRect.width() > systemTrayIconSize)) {
+        retFont.setPointSize(retFont.pointSize() - 1);
+        QFontMetrics fm(retFont);
+        boundingRect = fm.boundingRect(rectangle, Qt::AlignCenter|Qt::AlignVCenter, s);
+        qDebug() << "boundingRect: " << boundingRect;
+        qDebug() << "autoresized font: " << retFont.toString();
+    }
+
+    return retFont;
+}
+
+void TrayTemperature::updateTemperatureDisplaySampleLabel() {
+    // TODO: use stylesheet?
+    // TODO: do something about the label being invisible when FG/BG colors are the same
+
+    QString temperatureString = settingsHolder->showDegreeSymbol ? "42°" : "42";
+    QFont font = settingsHolder->temperatureFont;
+    if (settingsHolder->autoAdjustFontSize) {
+        font = adjustFontSizeForTrayIcon(font, temperatureString);
+    }
+    ui->label_sampleDisplay->setFont(font);
+    ui->label_sampleDisplay->setText(temperatureString);
+
     ui->label_sampleDisplay->setAutoFillBackground(true);
     ui->label_sampleDisplay->setFixedSize(systemTrayIconSize,systemTrayIconSize);
 
@@ -341,6 +376,9 @@ void TrayTemperature::loadSettings() {
     settingsHolder->useManualLocation = settings->value("useManualLocation").toBool();
     settingsHolder->manualLat = settings->value("manualLat").toDouble();
     settingsHolder->manualLon = settings->value("manualLon").toDouble();
+
+    settingsHolder->autoAdjustFontSize = settings->value("autoAdjustFontSize").toBool();
+    settingsHolder->showDegreeSymbol = settings->value("showDegreeSymbol").toBool();
 }
 
 void TrayTemperature::saveSettings() {
@@ -358,6 +396,9 @@ void TrayTemperature::saveSettings() {
     settings->setValue("useManualLocation", settingsHolder->useManualLocation);
     settings->setValue("manualLat", settingsHolder->manualLat);
     settings->setValue("manualLon", settingsHolder->manualLon);
+
+    settings->setValue("autoAdjustFontSize", settingsHolder->autoAdjustFontSize);
+    settings->setValue("showDegreeSymbol",settingsHolder->showDegreeSymbol);
 }
 
 void TrayTemperature::defaultSettings() {
@@ -373,6 +414,8 @@ void TrayTemperature::defaultSettings() {
     settingsHolder->useManualLocation = settingsHolder->useManualLocationDefault;
     settingsHolder->manualLat = settingsHolder->manualLatDefault;
     settingsHolder->manualLon = settingsHolder->manualLonDefault;
+    settingsHolder->autoAdjustFontSize = settingsHolder->autoAdjustFontSizeDefault;
+    settingsHolder->showDegreeSymbol = settingsHolder->showDegreeSymbolDefault;
 }
 
 void TrayTemperature::fireAndRestartTimer() {
@@ -396,8 +439,6 @@ void TrayTemperature::showConfigDialog() {
 
     this->showNormal();
     this->raise();
-
-
 
 }
 
@@ -448,11 +489,8 @@ void TrayTemperature::on_button_font_clicked()
     QFont font = QFontDialog::getFont(&ok, settingsHolder->temperatureFont);
     if (ok) {
         qDebug() << "font is now: " << font;
-        //settingsHolder->temperatureFont = font;
         ui->label_font->setText(fontDisplayName(font));
         ui->label_sampleDisplay->setFont(font);
-
-        //updateTemperatureDisplaySampleLabel();
     } else {
         qDebug() << "font is still: " << font;
     }
@@ -463,14 +501,11 @@ void TrayTemperature::on_button_fgColor_clicked()
     const QColor color = QColorDialog::getColor(settingsHolder->temperatureColor);
     if (color.isValid()) {
         qDebug() << "color is now" << color;
-        //settingsHolder->temperatureColor = color;
         ui->label_fgColor->setText(color.name());
 
         QPalette palette = ui->label_sampleDisplay->palette();
         palette.setColor(ui->label_sampleDisplay->foregroundRole(), color);
         ui->label_sampleDisplay->setPalette(palette);
-
-        //updateTemperatureDisplaySampleLabel();
     }
     else {
         qDebug() << "color is still" << color;
@@ -524,7 +559,6 @@ void TrayTemperature::on_checkBox_transparentBg_stateChanged(int state)
 void TrayTemperature::on_radio_useIpLocation_clicked()
 {
     qDebug() << "on_radio_useIpLocation_clicked()";
-    settingsHolder->useManualLocation = false;
     ui->spinBox_lat->setDisabled(true);
     ui->spinBox_lon->setDisabled(true);
 }
@@ -532,7 +566,6 @@ void TrayTemperature::on_radio_useIpLocation_clicked()
 void TrayTemperature::on_radio_useManualLocation_clicked()
 {
     qDebug() << "on_radio_useManualLocation_clicked()";
-    settingsHolder->useManualLocation = true;
     ui->spinBox_lat->setDisabled(false);
     ui->spinBox_lon->setDisabled(false);
 }
@@ -553,6 +586,8 @@ void TrayTemperature::on_buttonBox_main_clicked(QAbstractButton *button)
         settingsHolder->useManualLocation = ui->radio_useManualLocation->isChecked();
         settingsHolder->manualLat = ui->spinBox_lat->value();
         settingsHolder->manualLon = ui->spinBox_lon->value();
+        settingsHolder->showDegreeSymbol = ui->checkBox_showDegreeSymbol->isChecked();
+        settingsHolder->autoAdjustFontSize = ui->checkBox_autoSizeFont->isChecked();
 
         saveSettings();
 
@@ -577,7 +612,26 @@ void TrayTemperature::on_buttonBox_main_clicked(QAbstractButton *button)
 
 void TrayTemperature::on_lineEdit_openWeatherApiKey_textChanged(const QString &text)
 {
-    // if the APIKey is empty, set its background to yellowish as an alert
-    qDebug() << "text=" << text;
+    // if the APIKey becomes empty, set its background to yellowish as an alert
+    Q_UNUSED(text)
     highlightIfEmpty(ui->lineEdit_openWeatherApiKey);
+}
+
+void TrayTemperature::on_checkBox_showDegreeSymbol_stateChanged(int state)
+{
+    qDebug() << QString("on_checkBox_showDegreeSymbol_stateChanged(%1)").arg(state);
+    ui->label_sampleDisplay->setText(state ? "42°" : "42");
+    if (ui->checkBox_autoSizeFont->isChecked()) {
+        QFont font = adjustFontSizeForTrayIcon(ui->label_sampleDisplay->font(), ui->label_sampleDisplay->text());
+        ui->label_sampleDisplay->setFont(font);
+    }
+}
+
+void TrayTemperature::on_checkBox_autoSizeFont_stateChanged(int state)
+{
+    qDebug() << QString("on_checkBox_autoSizeFont_stateChanged(%1)").arg(state);
+    if (state) {
+        QFont font = adjustFontSizeForTrayIcon(ui->label_sampleDisplay->font(), ui->label_sampleDisplay->text());
+        ui->label_sampleDisplay->setFont(font);
+    }
 }
