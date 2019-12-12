@@ -1,7 +1,7 @@
 TrayTemperature
 ===============
 
-  7-Dec-2019: first release  
+ 07-Dec-2019: first release  
  11-Dec-2019: 1.2.0 - added options to display degree symbol and autosize font
 
 # Summary
