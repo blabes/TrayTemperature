@@ -29,7 +29,7 @@ Download the latest ![release](https://github.com/blabes/TrayTemperature/release
 For now you'll have to build it yourself.  Grab Qt Creator and go to town.
 
 # Application Screenshots
-- The temperature, with or without degree symbol  
+- The temperature in the system tray, with or without degree symbol  
 ![Temperature only](/../screenshots/TrayTemperature%20taskbar.png?raw=true "Temperature only")
 ![Temperature with degree symbol](/../screenshots/TrayTemperature%20tooltip%20degree.png?raw=true "Temperature with degree symbol") 
 
