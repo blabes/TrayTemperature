@@ -29,10 +29,11 @@ For now you'll have to build it yourself.  Grab Qt Creator and go to town.
 
 # Application Screenshots
 - The temperature  
-![Temperature only](/../screenshots/TrayTemperature%20taskbar.png?raw=true "Temperature only")  
+![Temperature only](/../screenshots/TrayTemperature%20taskbar.png?raw=true "Temperature only")
+![Temperature with degree symbol](/../screenshots/TrayTemperature%20tooltip%20degree.png?raw=true "Temperature with degree symbol") 
 
 - Temperature and its tooltip  
 ![Temperature and tooltip](/../screenshots/TrayTemperature%20tooltip.png?raw=true "Temperature and tooltip")  
 
 - Configuration screen  
-![Config Screen](/../screenshots/TrayTemperature%20config.png?raw=true "Config Screen")  
+![Config Screen](/../screenshots/TrayTemperature%20config%201_2_0.png?raw=true "Config Screen")  
