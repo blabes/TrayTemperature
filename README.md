@@ -12,7 +12,7 @@ TrayTemperature
 - [Application Screenshots](#screenshots)
 
 # Description
-A Qt Dialog application implemented in C# to display the current outdoor temperature in the Windows notification area, somtimes referred to as the system tray.  The computer's location is found using [http://ip-api.com/](http://ip-api.com/) so if your IP address is not a good clue to your real location, you'll need to determine and enter your latitude and longitude by hand.  Temperature information is retrieved from [OpenWeatherMap](http://openweathermap.org/). In order to make use of OpenWeatherMap, you'll need to register on their site and obtain a free API key, which you then copy and paste into this application's configuration screen on first use.
+A Qt Dialog application implemented in C++ to display the current outdoor temperature in the Windows notification area, somtimes referred to as the system tray.  The computer's location is found using [http://ip-api.com/](http://ip-api.com/) so if your IP address is not a good clue to your real location, you'll need to determine and enter your latitude and longitude by hand.  Temperature information is retrieved from [OpenWeatherMap](http://openweathermap.org/). In order to make use of OpenWeatherMap, you'll need to register on their site and obtain a free API key, which you then copy and paste into this application's configuration screen on first use.
 
 I took inspriation from the following Qt programs and examples: [TrayWeather](https://github.com/FelixdelasPozas/TrayWeather) by Félix de las Pozas Álvarez, [Qt System Tray Icon Example](https://doc.qt.io/qt-5/qtwidgets-desktop-systray-example.html), and [Qt Weather Info Example](https://doc.qt.io/qt-5/qtpositioning-weatherinfo-example.html).
 
