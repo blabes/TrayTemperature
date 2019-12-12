@@ -1,7 +1,8 @@
 TrayTemperature
 ===============
 
-7-Dec-2019: first release
+ 7-Dec-2019: first release
+11-Dec-2019: 1.2.0 - added options to display degree symbol and autosize font
 
 # Summary
 - [Description](#description)
@@ -16,7 +17,7 @@ A Qt Dialog application implemented in C# to display the current outdoor tempera
 I took inspriation from the following Qt programs and examples: [TrayWeather](https://github.com/FelixdelasPozas/TrayWeather) by Félix de las Pozas Álvarez, [Qt System Tray Icon Example](https://doc.qt.io/qt-5/qtwidgets-desktop-systray-example.html), and [Qt Weather Info Example](https://doc.qt.io/qt-5/qtpositioning-weatherinfo-example.html).
 
 ## Options
-The temperature display units (&deg;F or &deg;C), the update frequency, font, and color are all configurable. You can also choose whether to allow ip-api.com to do its best to determine your latitude and longitude based on your IP address, or you can enter your latitude and longitude manually.
+The temperature display units (&deg;F or &deg;C), the update frequency, font, and color are all configurable. You can also choose whether to allow ip-api.com to do its best to determine your latitude and longitude based on your IP address, or you can enter your latitude and longitude manually.  As of ![version 1.2.0](https://github.com/blabes/TrayTemperature/releases/tag/1.2.0), you can choose whether or not to display a degree symbol after the temperature, and you can choose your own font size or have the program autosize the font to fit into the icon.
 
 # Development Platform
 This application was developed in C++ in Qt on Microsoft Windows 10 using [Qt Creator 4.10.2](https://www.qt.io/development-tools). It was built with the MinGW 64-bit compiler.
