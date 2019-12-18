@@ -21,6 +21,7 @@ limitations under the License.
 #include "ui_TrayTemperatureConfig.h"
 #include "ui_TrayTemperatureAbout.h"
 #include "TrayTemperature.h"
+#include "TimedMessageBox.h"
 
 #ifndef QT_NO_SYSTEMTRAYICON
 
@@ -108,6 +109,7 @@ void TrayTemperature::closeEvent(QCloseEvent *event)
         // we hide and keep running instead of quitting the application
         hide();
         event->ignore();
+        qDebug() << "in closeEvent()";
     }
 }
 
@@ -139,29 +141,52 @@ void TrayTemperature::popupNetworkWarning(QNetworkReply *rep, const QString& msg
     trayIcon->setIcon(warningIcon);
     trayIcon->setToolTip(msg + tr(" request error"));
 
-    QMessageBox msgBox;
-    msgBox.setWindowTitle("Tray Temperature");
-    msgBox.setText(QString(tr("Problem requesting ") + msg + tr(" data, ") +
-                           tr("so automatic temperature updates have been suspended. ") +
-                           tr("Click 'Retry' to retry the request and restart automatic updates. ") +
-                           tr("Click 'Configure...' if you need to fix the configuration.")));
+    // TimedMessageBox will replace the %1 placeholder every second with
+    // the hh:mm:ss remaining before timeout
+    const QString warningText = QString(tr("Problem requesting ") + msg +
+                                        tr(" data\n"
+                                           "Click 'Retry' to retry the request now\n"
+                                           "Click 'Configure...' if you need to fix the configuration\n\n"
+                                           "Retrying in %1..."));
+
+    TimedMessageBox tmb;
+
+    tmb.setTimeoutInSeconds(retryWaitSeconds);
+    tmb.setText(warningText);
+    tmb.setWindowTitle("TrayTemperature");
     QString ts = QDateTime::currentDateTime().toString();
-    msgBox.setDetailedText(QString(tr("Time: %1\nError: %2\nRequest: %3")).arg(ts, rep->errorString(), rep->url().toString()));
+    tmb.setDetailedText(QString(tr("Time: %1\nError: %2\nRequest: %3")).arg(ts, rep->errorString(), rep->url().toString()));
+    // add "Configure..." and "Retry" buttons for convenience, and a standard "Cancel"
+    QAbstractButton *retryButton = tmb.addButton(tr("Retry"), QMessageBox::AcceptRole);
+    QAbstractButton *configureButton = tmb.addButton(tr("Configure..."), QMessageBox::AcceptRole);
+    QAbstractButton *cancelButton = tmb.addButton(tr("Cancel"), QMessageBox::RejectRole);
 
-    // add "Configure..." and "Retry" buttons for convenience, and the standard "Cancel"
-    QAbstractButton *retryButton = msgBox.addButton(tr("Retry"), QMessageBox::AcceptRole);
-    QAbstractButton *configureButton = msgBox.addButton(tr("Configure..."), QMessageBox::ActionRole);
-    msgBox.setStandardButtons(QMessageBox::Cancel);
+    // TimedMessageBox will "click" this button if it times out,
+    // and TimedMessageBox::timedOut() will return true
+    tmb.setDefaultButton(static_cast<QPushButton*> (cancelButton));
 
-    msgBox.exec();
+    tmb.exec();
+    qDebug() << "out of TimedMessageBox";
+    qDebug() << "clicked: " << tmb.clickedButton()->text();
 
-    if (msgBox.clickedButton() == configureButton) {
+    if (tmb.clickedButton() == configureButton) {
+        qDebug() << "configureButton";
         showConfigDialog();
     }
-    else if (msgBox.clickedButton() == retryButton){
+    else if (tmb.clickedButton() == retryButton) {
+        qDebug() << "retryButton";
+        retryWaitSeconds = minRetryWaitSeconds; // reset the retry timer if the user hits "Retry..."
         fireAndRestartTimer();
     }
-
+    else if (tmb.clickedButton() == cancelButton) {
+        qDebug() << "cancelButton";
+        if (tmb.timedOut()) {
+            qDebug() << "tmb timedOut";
+            retryWaitSeconds = retryWaitSeconds * 2; // double time between retries
+            if (retryWaitSeconds > 3600) retryWaitSeconds = 3600; // but max out an an hour
+            fireAndRestartTimer();
+        }
+    }
 }
 
 void TrayTemperature::handleGeoLocationData(QNetworkReply *rep) {
@@ -194,6 +219,7 @@ void TrayTemperature::handleGeoLocationData(QNetworkReply *rep) {
 void TrayTemperature::refreshTemperature() {
     qDebug() << "refreshTemperature()";
     QUrl url("http://api.openweathermap.org/data/2.5/weather");
+
     QUrlQuery query;
 
     double lat = settingsHolder->useManualLocation ? settingsHolder->manualLat : this->lat;
@@ -226,7 +252,11 @@ void TrayTemperature::handleWeatherNetworkData(QNetworkReply *rep){
         QVariantMap weatherVMap = weatherJsonDoc.object().toVariantMap();
         QVariantMap mainVMap = weatherVMap["main"].toMap();
         this->temperature = mainVMap["temp"].toDouble();
+        if (settingsHolder->useManualLocation) {
+            this->city=weatherVMap["name"].toString();
+        }
         qDebug() << "temperature is: " << this->temperature;
+        this->retryWaitSeconds = this->minRetryWaitSeconds; // reset the retry wait timer on success
         emit(temperatureRefreshed());
     }
     else {
@@ -284,8 +314,8 @@ QFont TrayTemperature::adjustFontSizeForTrayIcon(QFont font, QString s) {
         retFont.setPointSize(retFont.pointSize() - 1);
         QFontMetrics fm(retFont);
         boundingRect = fm.boundingRect(rectangle, Qt::AlignCenter|Qt::AlignVCenter, s);
-        qDebug() << "boundingRect: " << boundingRect;
-        qDebug() << "autoresized font: " << retFont.toString();
+        //qDebug() << "boundingRect: " << boundingRect;
+        //qDebug() << "autoresized font: " << retFont.toString();
     }
 
     return retFont;

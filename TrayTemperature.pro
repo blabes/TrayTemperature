@@ -1,4 +1,5 @@
 HEADERS       = \
+    TimedMessageBox.h \
     TrayTemperature.h
 SOURCES       = \
                 TrayTemperature.cpp \

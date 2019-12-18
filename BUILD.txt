@@ -19,3 +19,6 @@ Then run inno to create the two installer executables
 
 Remember to make the git tag 3 levels deep, like 1.1.1 so it gets grabbed correctly by gitversion.pri
 and placed in the VERSION and GIT_VERSION variables.
+
+To push just a tag: git push <repo-name> <tag-name>
+                ex: git push origin 1.2.0

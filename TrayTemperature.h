@@ -25,6 +25,7 @@ limitations under the License.
 
 #include "ui_TrayTemperatureConfig.h"
 #include "ui_TrayTemperatureAbout.h"
+#include "TimedMessageBox.h"
 
 #include <QDialog>
 
@@ -125,8 +126,6 @@ private:
         bool showDegreeSymbolDefault = true;
     };
 
-
-
     const QIcon warningIcon = QIcon(":/images/c-warning.svg");
 
     const QString version = QString("%1").arg(GIT_VERSION);
@@ -176,6 +175,9 @@ private:
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
+
+    const int minRetryWaitSeconds = 5;
+    int retryWaitSeconds = minRetryWaitSeconds;
 
 signals:
     void locationRefreshed();
