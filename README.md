@@ -2,7 +2,7 @@ TrayTemperature
 ===============
 
  07-Dec-2019: first release  
- 11-Dec-2019: ![1.2.0](https://github.com/blabes/TrayTemperature/releases/tag/1.2.0) - added options to display degree symbol and autosize font
+ 11-Dec-2019: ![1.2.0](https://github.com/blabes/TrayTemperature/releases/tag/1.2.0) - added options to display degree symbol and autosize font  
  18-Dec-2019: ![1.3.0](https://github.com/blabes/TrayTemperature/releases/tag/1.3.0) - added auto-retry logic to handle network errors when Windows is waking up from sleep
 
 # Summary
