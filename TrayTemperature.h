@@ -61,15 +61,13 @@ class TrayTemperature : public QDialog
 public:
     TrayTemperature();
 
-//    void setVisible(bool visible) override;
-
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
     void timerTick();
-
     void handleWeatherNetworkData(QNetworkReply *networkReply);
+    void testWeatherNetworkData(QNetworkReply *rep);
     void handleGeoLocationData(QNetworkReply *rep);
     void refreshLocation();
     void refreshTemperature();
@@ -77,24 +75,16 @@ private slots:
     void fireAndRestartTimer();
 
     void on_button_font_clicked();
-
     void on_button_fgColor_clicked();
-
     void on_button_bgColor_clicked();
-
     void on_checkBox_transparentBg_stateChanged(int arg1);
-
     void on_radio_useIpLocation_clicked();
-
     void on_radio_useManualLocation_clicked();
-
     void on_buttonBox_main_clicked(QAbstractButton *button);
-
     void on_lineEdit_openWeatherApiKey_textChanged(const QString &arg1);
-
     void on_checkBox_showDegreeSymbol_stateChanged(int arg1);
-
     void on_checkBox_autoSizeFont_stateChanged(int arg1);
+    void on_pushButton_testApiKey_clicked();
 
 private:
 
@@ -114,16 +104,16 @@ private:
         bool showDegreeSymbol;
 
         const QString temperatureDisplayUnitsDefault = "IMPERIAL";
-        const int temperatureUpdateFrequencyDefault = 5;
+        const int temperatureUpdateFrequencyDefault = 10;
         const QFont temperatureFontDefault = QFont("Segoe UI", 9, QFont::Bold, false);
         const QColor temperatureColorDefault = QColor(Qt::white);
         const QColor bgTemperatureColorDefault = QColor(Qt::blue);
         const bool bgTemperatureColorTransparentDefault = true;
         const bool useManualLocationDefault = false;
-        double manualLatDefault = 0;
-        double manualLonDefault = 0;
-        bool autoAdjustFontSizeDefault = true;
-        bool showDegreeSymbolDefault = true;
+        const double manualLatDefault = 0;
+        const double manualLonDefault = 0;
+        const bool autoAdjustFontSizeDefault = true;
+        const bool showDegreeSymbolDefault = true;
     };
 
     const QIcon warningIcon = QIcon(":/images/c-warning.svg");
@@ -176,7 +166,9 @@ private:
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
 
-    const int minRetryWaitSeconds = 5;
+    QFont holdMyFont;
+
+    const int minRetryWaitSeconds = 10;
     int retryWaitSeconds = minRetryWaitSeconds;
 
 signals:

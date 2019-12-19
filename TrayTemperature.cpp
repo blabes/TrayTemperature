@@ -234,8 +234,7 @@ void TrayTemperature::refreshTemperature() {
 
     QNetworkReply *rep = nam->get(QNetworkRequest(url));
     // connect up the signal right away
-    connect(rep, &QNetworkReply::finished,
-            this, [this, rep]() { handleWeatherNetworkData(rep); });
+    connect(rep, &QNetworkReply::finished, this, [this, rep]() { handleWeatherNetworkData(rep); });
 }
 
 void TrayTemperature::handleWeatherNetworkData(QNetworkReply *rep){
@@ -307,7 +306,7 @@ QFont TrayTemperature::adjustFontSizeForTrayIcon(QFont font, QString s) {
     QFont retFont = font;
     const QRect rectangle = QRect(0, 0, systemTrayIconSize, systemTrayIconSize);
 
-    retFont.setPointSize(15); // start big, then decrement pointSize till the string fits in the box
+    retFont.setPointSize(15); // start big, then decrement pointSize till the string fits into our rectangle
     QFontMetrics fm(retFont);
     QRect boundingRect = fm.boundingRect(rectangle, Qt::AlignCenter|Qt::AlignVCenter, s);
     while (retFont.pointSize() > 1 && (boundingRect.height() > systemTrayIconSize || boundingRect.width() > systemTrayIconSize)) {
@@ -317,7 +316,7 @@ QFont TrayTemperature::adjustFontSizeForTrayIcon(QFont font, QString s) {
         //qDebug() << "boundingRect: " << boundingRect;
         //qDebug() << "autoresized font: " << retFont.toString();
     }
-
+    qDebug() << "adjusted to a font size of " << retFont.pointSize();
     return retFont;
 }
 
@@ -356,6 +355,7 @@ void TrayTemperature::highlightIfEmpty(QLineEdit *e) {
     e->setStyleSheet("background-color: " + colorSpec);
 }
 
+// make all the UI widgets reflect the values stored in settingsHolder
 void TrayTemperature::updateConfigDialogWidgets() {
     qDebug() << "updateConfigDialogWidgets()";
     ui->radio_imperial->setChecked(settingsHolder->temperatureDisplayUnits == "IMPERIAL");
@@ -370,6 +370,8 @@ void TrayTemperature::updateConfigDialogWidgets() {
 
     ui->spinBox_updateFrequency->setValue(settingsHolder->temperatureUpdateFrequency);
     ui->checkBox_transparentBg->setChecked(settingsHolder->bgTemperatureColorTransparent);
+    ui->checkBox_showDegreeSymbol->setChecked(settingsHolder->showDegreeSymbol);
+    ui->checkBox_autoSizeFont->setChecked(settingsHolder->autoAdjustFontSize);
     ui->button_bgColor->setDisabled(settingsHolder->bgTemperatureColorTransparent);
     ui->label_bgColor->setDisabled(settingsHolder->bgTemperatureColorTransparent);
 
@@ -398,6 +400,7 @@ void TrayTemperature::loadSettings() {
     settingsHolder->APIKey = settings->value("APIKey").toString();
     settingsHolder->temperatureDisplayUnits = settings->value("temperatureDisplayUnits").toString();
     settingsHolder->temperatureFont = settings->value("temperatureFont").value<QFont>();
+    this->holdMyFont = settingsHolder->temperatureFont;
     settingsHolder->temperatureColor = settings->value("temperatureColor").value<QColor>();
     settingsHolder->bgTemperatureColor = settings->value("bgTemperatureColor").value<QColor>();
     settingsHolder->bgTemperatureColorTransparent = settings->value("bgTemperatureColorTransparent").toBool();
@@ -437,6 +440,7 @@ void TrayTemperature::defaultSettings() {
     settingsHolder->temperatureUpdateFrequency = settingsHolder->temperatureUpdateFrequencyDefault;
     settingsHolder->temperatureDisplayUnits = settingsHolder->temperatureDisplayUnitsDefault;
     settingsHolder->temperatureFont = settingsHolder->temperatureFontDefault;
+    this->holdMyFont = settingsHolder->temperatureFont;
     settingsHolder->temperatureColor = settingsHolder->temperatureColorDefault;
     settingsHolder->bgTemperatureColor = settingsHolder->bgTemperatureColorDefault;
     settingsHolder->bgTemperatureColorTransparent = settingsHolder->bgTemperatureColorTransparentDefault;
@@ -516,11 +520,16 @@ void TrayTemperature::createTrayIcon()
 void TrayTemperature::on_button_font_clicked()
 {
     bool ok;
-    QFont font = QFontDialog::getFont(&ok, settingsHolder->temperatureFont);
+    QFont font = QFontDialog::getFont(&ok, this->holdMyFont);
+    QFont possiblyAdjustedFont = font;
+    this->holdMyFont = font;
     if (ok) {
         qDebug() << "font is now: " << font;
         ui->label_font->setText(fontDisplayName(font));
-        ui->label_sampleDisplay->setFont(font);
+        if (ui->checkBox_autoSizeFont->isChecked()) {
+            possiblyAdjustedFont = adjustFontSizeForTrayIcon(font, ui->label_sampleDisplay->text());
+        }
+        ui->label_sampleDisplay->setFont(possiblyAdjustedFont);
     } else {
         qDebug() << "font is still: " << font;
     }
@@ -611,6 +620,7 @@ void TrayTemperature::on_buttonBox_main_clicked(QAbstractButton *button)
         qDebug() << "ui->checkBox_transparentBg->isChecked(): " << ui->checkBox_transparentBg->isChecked();
         settingsHolder->bgTemperatureColorTransparent = ui->checkBox_transparentBg->isChecked();
         settingsHolder->temperatureFont = ui->label_sampleDisplay->font();
+        this->holdMyFont = settingsHolder->temperatureFont;
         settingsHolder->temperatureColor = ui->label_sampleDisplay->palette().color(ui->label_sampleDisplay->foregroundRole());
         settingsHolder->bgTemperatureColor = ui->label_sampleDisplay->palette().color(ui->label_sampleDisplay->backgroundRole());
         settingsHolder->useManualLocation = ui->radio_useManualLocation->isChecked();
@@ -664,4 +674,53 @@ void TrayTemperature::on_checkBox_autoSizeFont_stateChanged(int state)
         QFont font = adjustFontSizeForTrayIcon(ui->label_sampleDisplay->font(), ui->label_sampleDisplay->text());
         ui->label_sampleDisplay->setFont(font);
     }
+    else {
+        ui->label_sampleDisplay->setFont(this->holdMyFont);
+    }
+}
+
+void TrayTemperature::testWeatherNetworkData(QNetworkReply *rep) {
+    if (!rep) {
+        trayIcon->setIcon(warningIcon);
+        trayIcon->setToolTip(tr("Weather request test error"));
+        trayIcon->showMessage(tr("Weather network test error"), tr("Reply was null"));
+        qFatal("error with weather API test reply, rep was null");
+    }
+
+    QMessageBox msgBox;
+
+    msgBox.setWindowTitle("TrayTemperature");
+    QString ts = QDateTime::currentDateTime().toString();
+
+    if (!rep->error()) {
+        msgBox.setText("API Key test succeeded!");
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setDetailedText(QString(tr("Time: %1\nRequest: %2")).arg(ts, rep->url().toString()));
+    }
+    else {
+        msgBox.setText("API Key test failed.");
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.setDetailedText(QString(tr("Time: %1\nError: %2\nRequest: %3")).arg(ts, rep->errorString(), rep->url().toString()));
+    }
+
+    msgBox.exec();
+
+}
+
+void TrayTemperature::on_pushButton_testApiKey_clicked()
+{
+    qDebug() << "on_pushButton_testApiKey_clicked()";
+    QUrl url("http://api.openweathermap.org/data/2.5/weather");
+
+    QUrlQuery query;
+
+    query.addQueryItem("lat", "0");
+    query.addQueryItem("lon", "0");
+    query.addQueryItem("appid", ui->lineEdit_openWeatherApiKey->text());
+    url.setQuery(query);
+    qDebug() << "submitting request: " << url;
+
+    QNetworkReply *rep = nam->get(QNetworkRequest(url));
+    // connect up the signal right away
+    connect(rep, &QNetworkReply::finished, this, [this, rep]() { testWeatherNetworkData(rep); });
 }
