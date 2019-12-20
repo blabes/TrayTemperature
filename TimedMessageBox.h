@@ -5,7 +5,7 @@ TimedMessageBox.h
 Adapted from https://gist.github.com/Blubbz0r/d7c4d81f47098b4e524d, a
 QMessageBox including a countdown value that is displayed to the user.
 When the countdown reaches 0, the message box automatically 'clicks' on
-the default button.
+the default button and timedOut() will return true.
 
 Sample Usage:
 
@@ -13,6 +13,7 @@ Sample Usage:
 
     tmb.setTimeoutInSeconds(25);
     tmb.setText("Will retry in %1");
+    tmb.setSecondsFormat("mm:ss");
     tmb.setWindowTitle("My Application");
     QAbstractButton *retryButton = tmb.addButton(tr("Retry"), QMessageBox::AcceptRole);
     QAbstractButton *cancelButton = tmb.addButton(tr("Cancel"), QMessageBox::RejectRole);
@@ -62,18 +63,20 @@ class TimedMessageBox : public QMessageBox
 public:
     TimedMessageBox(
             int             timeoutInSeconds = 10,
-            const QString&  title            = "Warning",
+            const QString&  format           = "hh:mm:ss",
+            QPushButton*    defaultButton    = nullptr,
             Icon            icon             = QMessageBox::Warning,
+            const QString&  title            = "Warning",
             const QString&  text             = "Warning",
             StandardButtons buttons          = QMessageBox::NoButton,
-            QPushButton*    defaultButton    = nullptr,
             QWidget*        parent           = nullptr,
             Qt::WindowFlags flags            = Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint
             ) :
         QMessageBox(icon, title, text, buttons, parent, flags),
         m_timeoutInSeconds(timeoutInSeconds),
         m_text(text),
-        m_timedOut(false)
+        m_timedOut(false),
+        m_secondsFormat(format)
     {
         setDefaultButton(defaultButton);
         connect(&m_timer, &QTimer::timeout, this, &TimedMessageBox::updateTimeout);
@@ -86,6 +89,10 @@ public:
 
     void setText(const QString &text) {
         m_text = text;
+    }
+
+    void setSecondsFormat(const QString &format) {
+        m_secondsFormat = format;
     }
 
     bool timedOut() {
@@ -102,17 +109,18 @@ private slots:
     void updateTimeout() {
         qDebug() << "TimedMessageBox tick..." << m_timeoutInSeconds;
         if (--m_timeoutInSeconds >= 0) {
-            QString hhmmss = QDateTime::fromSecsSinceEpoch(m_timeoutInSeconds, Qt::UTC).toString("hh:mm:ss");
-            QMessageBox::setText(m_text.arg(hhmmss));
+            QString displaySecs = QDateTime::fromSecsSinceEpoch(m_timeoutInSeconds, Qt::UTC).toString(m_secondsFormat);
+            QMessageBox::setText(m_text.arg(displaySecs));
         }
         else {
             m_timer.stop();
+            m_timedOut = true;
+
             if (!defaultButton()) {
                 qCritical("No valid default button");
                 return;
             }
 
-            m_timedOut = true;
             defaultButton()->animateClick();
         }
     }
@@ -122,5 +130,6 @@ private:
     QString m_text;
     QTimer m_timer;
     bool m_timedOut;
+    QString m_secondsFormat;
 };
 #endif

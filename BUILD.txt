@@ -20,8 +20,9 @@ Then run inno to create the two installer executables
 To create a new release:
 ------------------------
 
-Make a git tag 3 levels deep, like 1.1.1 so it gets grabbed correctly by gitversion.pri
-and placed in the VERSION and GIT_VERSION variables. (Tools/Git/Git Tools/Gitk)
+Commit all changes to the local repository.  Make a git tag 3 levels deep,
+like 1.1.1 so it gets grabbed correctly by gitversion.pri and placed in
+the VERSION and GIT_VERSION variables. (Tools/Git/Git Tools/Gitk)
 
 In Qt Creator for both 32 and 64-bit Release:
  - Build/Clean Project

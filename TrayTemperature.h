@@ -28,6 +28,7 @@ limitations under the License.
 #include "TimedMessageBox.h"
 
 #include <QDialog>
+#include <QSystemTrayIcon>
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -133,6 +134,8 @@ private:
     void showConfigDialog();
     void highlightIfEmpty(QLineEdit *e);
     QFont adjustFontSizeForTrayIcon(QFont font, QString s);
+
+    void popupTrayIconMenu(QSystemTrayIcon::ActivationReason reason);
 
     // System tray icon size is 16x16 on Windows, and 22x22 on X11.
     // would be nice if we could query the icon to find its size,

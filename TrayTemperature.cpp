@@ -75,6 +75,7 @@ TrayTemperature::TrayTemperature()
 
     setWindowTitle(tr("Tray Temperature"));
 
+    connect(trayIcon, &QSystemTrayIcon::activated, this, &TrayTemperature::popupTrayIconMenu);
     connect(this, &TrayTemperature::locationRefreshed, this, &TrayTemperature::refreshTemperature);
     connect(this, &TrayTemperature::temperatureRefreshed, this, &TrayTemperature::displayIcon);
     connect(this, &TrayTemperature::locationRefreshed, this, &TrayTemperature::updateConfigDialogWidgets);
@@ -111,6 +112,11 @@ void TrayTemperature::closeEvent(QCloseEvent *event)
         event->ignore();
         qDebug() << "in closeEvent()";
     }
+}
+
+void TrayTemperature::popupTrayIconMenu(QSystemTrayIcon::ActivationReason reason) {
+    Q_UNUSED(reason)
+    this->trayIconMenu->popup(QCursor::pos());
 }
 
 void TrayTemperature::timerTick() {
@@ -153,6 +159,7 @@ void TrayTemperature::popupNetworkWarning(QNetworkReply *rep, const QString& msg
 
     tmb.setTimeoutInSeconds(retryWaitSeconds);
     tmb.setText(warningText);
+    tmb.setSecondsFormat("mm:ss");
     tmb.setWindowTitle("TrayTemperature");
     QString ts = QDateTime::currentDateTime().toString();
     tmb.setDetailedText(QString(tr("Time: %1\nError: %2\nRequest: %3")).arg(ts, rep->errorString(), rep->url().toString()));
