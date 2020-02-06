@@ -31,6 +31,7 @@ int main(int argc, char *argv[])
     Q_INIT_RESOURCE(TrayTemperature);
     qSetMessagePattern("%{time} %{file}(%{line}): %{message}");
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QApplication app(argc, argv);
 
@@ -42,7 +43,6 @@ int main(int argc, char *argv[])
         );
         return 1;
     }
-    QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setQuitOnLastWindowClosed(false);
     QApplication::setWindowIcon(QIcon(":/images/c-weather-cloudy-with-sun.svg"));
     TrayTemperature window;
