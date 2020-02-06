@@ -3,7 +3,8 @@ TrayTemperature
 
  07-Dec-2019: first release  
  11-Dec-2019: ![1.2.0](https://github.com/blabes/TrayTemperature/releases/tag/1.2.0) - added options to display degree symbol and autosize font  
- 18-Dec-2019: ![1.3.0](https://github.com/blabes/TrayTemperature/releases/tag/1.3.0) - added auto-retry logic to handle network errors when Windows is waking up from sleep
+ 18-Dec-2019: ![1.3.0](https://github.com/blabes/TrayTemperature/releases/tag/1.3.0) - added auto-retry logic to handle network errors when Windows is waking up from sleep  
+ 20-Dec-2019: ![1.3.1](https://github.com/blabes/TrayTemperature/releases/tag/1.3.1) - Added "Test API Key..." button to config screen; added grey background to sample display in config screen so it's less likely for text to be invisible; any interaction with the system tray icon pops up its menu, not just right-click
 
 # Summary
 - [Description](#description)
@@ -38,4 +39,4 @@ For now you'll have to build it yourself.  Grab Qt Creator and go to town.
 ![Temperature and tooltip](/../screenshots/TrayTemperature%20tooltip.png?raw=true "Temperature and tooltip")  
 
 - Configuration screen  
-![Config Screen](/../screenshots/TrayTemperature%20config%201_2_0.png?raw=true "Config Screen")  
+![Config Screen](/../screenshots/TrayTemperature%20config%201_3_1.png?raw=true "Config Screen")  
