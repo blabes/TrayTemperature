@@ -35,7 +35,7 @@ Run w32 and w64 iss files in Inno Setup Compiler (right-click, Open With, System
  - Run TrayTemperature and check its version in Help/About
 
 Push the release tag to github:
- - Git Gui: Remote/Push, check "Include tags", Push
+ - Tools/Git/Git Tools/Git Gui: Remote/Push, check "Include tags", Push
    OR
  - Git Bash: git push origin 1.2.0
 

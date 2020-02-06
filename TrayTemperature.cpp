@@ -276,6 +276,9 @@ void TrayTemperature::displayIcon() {
     QPixmap pix(systemTrayIconSize,systemTrayIconSize);
     pix.fill(settingsHolder->bgTemperatureColor);
 
+    qreal r = pix.devicePixelRatio();
+    qDebug() << "devicePixelRatio=" << r;
+
     const QRect rectangle = QRect(0, 0, systemTrayIconSize, systemTrayIconSize);
 
     QPainter painter( &pix );
